@@ -37,6 +37,11 @@ PARAMETERS = MappingProxyType(
                                  # 3: Iterative routine (Berg Thesis) [https://oatao.univ-toulouse.fr/25471/1/Berg_Maxime.pdf]
                                  # 4: Iterative routine (Rasmussen et al. 2018) [https://onlinelibrary.wiley.com/doi/10.1111/micc.12445]
 
+        # Elastic vessel - vascular properties (tube law) - Only required for distensibility and autoregulation models
+        "pressure_external": 0.,  # Constant external pressure
+        "read_vascular_properties_option": 1,  # 1: Do not read anything
+        "tube_law_ref_state_option": 1,  # 1: No update of diameters due to vessel distensibility
+
         # Blood properties
         "ht_constant": 0.3,  # only required if RBC impact is considered
         "mu_plasma": 0.0012,

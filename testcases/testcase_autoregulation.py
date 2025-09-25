@@ -42,18 +42,14 @@ PARAMETERS = MappingProxyType(
                                     # 4: write to two csv files
         "tube_haematocrit_option": 2,  # 1: No RBCs (ht=0)
                                        # 2: Constant haematocrit
-                                       # 3: todo: RBC tracking
-                                       # 4-...: todo: steady state RBC laws
         "rbc_impact_option": 3,  # 1: No RBCs (hd=0)
                                  # 2: Laws by Pries, Neuhaus, Gaehtgens (1992)
                                  # 3: Laws by Pries and Secomb (2005)
-                                 # 4: Laws by Pries et al., (1996) used from Payne et al., (2023)
-                                 # 5-...: todo: Other laws. in vivo?
         "solver_option": 1,  # 1: Direct solver
                              # 2: PyAMG solver
                              # 3-...: other solvers
 
-        # Elastic vessel - vascular properties (tube law)
+        # Elastic vessel - vascular properties (tube law) - Only required for distensibility and autoregulation models
         "pressure_external": 0.,                    # Constant external pressure
         "read_vascular_properties_option": 2,       # 1: Do not read anything
                                                     # 2: Read vascular properties from csv file
@@ -64,10 +60,7 @@ PARAMETERS = MappingProxyType(
                                                         # d_ref computed based on Sherwin et al. (2003)
                                                     # 4: Passive diam changes, tube law. 1/D_ref ≈ 1/D. p_ext = const,
                                                         # d_ref computed based on Payne et al. (2023)
-                                                    # 5: Passive diam changes, tube law. 1/D_ref ≈ 1/D. p_ext = const,
-                                                        # d_ref computed based on Urquiza et al. (2006)
-                                                    # 6: Passive diam changes, tube law. 1/D_ref ≈ 1/D. p_ext = const,
-                                                        # d_ref computed based on Rammos et al. (1998)
+
         "csv_path_vascular_properties": "/storage/homefs/cl22d209/microBlooM_B6_B_init_061_trial_050/testcase_healthy_autoregulation_curve/autoregulation_our_networks/data/parameters/B6_B_init_061/B6_B_init_061_all_parameters_Emodulus_correction_generation_07.csv",
 
         # Blood properties
@@ -115,8 +108,6 @@ PARAMETERS = MappingProxyType(
 
         "dist_pres_area_relation_option": 2,    # 1: No update of diameters due to vessel distensibility
                                                 # 2: Relation based on Sherwin et al. (2003) - non linear p-A relation
-                                                # 3: Relation based on Urquiza et al. (2006) - non linear p-A relation
-                                                # 4: Relation based on Rammos et al. (1998) - linear p-A relation
 
         # Distensibility edge properties
         "csv_path_distensibility": "/storage/homefs/cl22d209/microBlooM_B6_B_init_061_trial_050/testcase_healthy_autoregulation_curve/autoregulation_our_networks/data/parameters/B6_B_init_061/B6_B_init_061_dist_parameters_Emodulus_correction_generation_07.csv",
@@ -135,14 +126,12 @@ PARAMETERS = MappingProxyType(
         "read_auto_parameters_option": 2,       # 1: Do not read anything
                                                 # 2: Read from csv file
 
-        "base_compliance_relation_option": 3,   # 1: Do not specify compliance relation
-                                                # 2: compliance at the baseline according to the relation proposed by Payne et al. (2023)
-                                                # 3: compliance at the baseline using the definition C = dV/dPt based on Sherwin et al. (2023)
+        "base_compliance_relation_option": 2,   # 1: Do not specify compliance relation
+                                                # 2: Baseline compliance using the definition C = dV/dPt based on Sherwin et al. (2023)
 
-        "auto_feedback_model_option": 4,        # 1: No update of diameters due to autoregulation
-                                                # 2: linear feedback model for the vessel relative stiffness based on Payne et al. (2023)
-                                                # 3: Dominik's version --> DV = C DP
-                                                # 4: our approach
+        "auto_feedback_model_option": 2,        # 1: No update of diameters due to autoregulation
+                                                # 2: Our approach - Update diameters by adjusting the autoregulation model proposed by Payne et al. (2023)
+
         # Autoregulation edge properties
         "csv_path_autoregulation": "/storage/homefs/cl22d209/microBlooM_B6_B_init_061_trial_050/testcase_healthy_autoregulation_curve/autoregulation_our_networks/data/parameters/B6_B_init_061/B6_B_init_061_auto_parameters_Emodulus_correction_generation_07.csv",
 
@@ -158,8 +147,7 @@ def model_simulation(percent):
     setup_blood_flow = setup.SetupSimulation()
     # Initialise the implementations based on the parameters specified
     imp_readnetwork, imp_writenetwork, imp_ht, imp_hd, imp_transmiss, imp_velocity, imp_buildsystem, \
-        imp_solver, imp_read_vascular_properties, imp_tube_law_ref_state = setup_blood_flow.setup_bloodflow_model(
-        PARAMETERS)
+        imp_solver, imp_iterative, imp_balance, imp_read_vascular_properties, imp_tube_law_ref_state = setup_blood_flow.setup_bloodflow_model(PARAMETERS)
 
     imp_read_dist_parameters, imp_dist_pres_area_relation = setup_blood_flow.setup_distensibility_model(PARAMETERS)
 
