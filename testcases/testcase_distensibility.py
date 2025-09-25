@@ -96,19 +96,20 @@ PARAMETERS = MappingProxyType(
 )
 
 # Create object to set up the simulation and initialise the simulation
-setup_blood_flow = setup.SetupSimulation()
+setup_simulation = setup.SetupSimulation()
 # Initialise the implementations based on the parameters specified
 imp_readnetwork, imp_writenetwork, imp_ht, imp_hd, imp_transmiss, imp_velocity, imp_buildsystem, \
-    imp_solver, imp_iterative, imp_balance = setup_blood_flow.setup_bloodflow_model(PARAMETERS)
+    imp_solver, imp_iterative, imp_balance, imp_read_vascular_properties, imp_tube_law_ref_state = setup_simulation.setup_bloodflow_model(PARAMETERS)
 
-imp_distensibility_law, imp_read_distensibility_parameters = setup_blood_flow.setup_distensibility_model(PARAMETERS)
+imp_read_dist_parameters, imp_dist_pres_area_relation = setup_simulation.setup_distensibility_model(PARAMETERS)
 
 # Build flownetwork object and pass the implementations of the different submodules, which were selected in
 #  the parameter file
 flow_network = FlowNetwork(imp_readnetwork, imp_writenetwork, imp_ht, imp_hd, imp_transmiss, imp_buildsystem,
-                           imp_solver, imp_velocity, imp_iterative, imp_balance, PARAMETERS)
+                           imp_solver, imp_velocity, imp_iterative, imp_balance, imp_read_vascular_properties,
+                           imp_tube_law_ref_state, PARAMETERS)
 
-distensibility = Distensibility(flow_network, imp_distensibility_law, imp_read_distensibility_parameters)
+distensibility = Distensibility(flow_network, imp_read_dist_parameters, imp_dist_pres_area_relation)
 
 # Import or generate the network
 print("Read network: ...")
@@ -136,7 +137,7 @@ distensibility.initialise_distensibility()
 print("Initialise distensibility model based on baseline results: DONE")
 
 # Post stroke
-# Adjust this part according your simulation scenario
+# Modify this part based on your simulation scenario
 stroke_edges = np.array([0, 1])  # Example: Occlude 2 edges at inflow
 flow_network.diameter[stroke_edges] = .5e-6
 

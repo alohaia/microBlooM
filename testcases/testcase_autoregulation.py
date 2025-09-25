@@ -52,15 +52,14 @@ PARAMETERS = MappingProxyType(
         "pressure_external": 0.,                    # Constant external pressure
         "read_vascular_properties_option": 2,       # 1: Do not read anything
                                                     # 2: Read vascular properties from csv file
-        "tube_law_ref_state_option": 4,             # 1: No update of diameters due to vessel distensibility
+        "tube_law_ref_state_option": 4,             # 1: No compute of reference diameters (d_ref)
                                                     # 2: Passive diam changes, tube law. 1/D_ref ≈ 1/D. p_ext = p_base,
                                                         # d_ref = d_base
                                                     # 3: Passive diam changes, tube law. 1/D_ref ≈ 1/D. p_ext = const,
                                                         # d_ref computed based on Sherwin et al. (2003)
                                                     # 4: Passive diam changes, tube law. 1/D_ref ≈ 1/D. p_ext = const,
                                                         # d_ref computed based on Payne et al. (2023)
-
-        "csv_path_vascular_properties": "/storage/homefs/cl22d209/microBlooM_B6_B_init_061_trial_050/testcase_healthy_autoregulation_curve/autoregulation_our_networks/data/parameters/B6_B_init_061/B6_B_init_061_all_parameters_Emodulus_correction_generation_07.csv",
+        "csv_path_vascular_properties": "data/vascular_properties/all_eids_vascular_properties.csv",  # Young's Modulus and Wall Thickness for all vessels
 
         # Blood properties
         "ht_constant": 0.3,  # only required if RBC impact is considered
@@ -69,33 +68,30 @@ PARAMETERS = MappingProxyType(
         # Hexagonal network properties. Only required for "read_network_option" 1
         "nr_of_hexagon_x": 3,
         "nr_of_hexagon_y": 3,
-        "hexa_edge_length": 80e-6,
-        "hexa_diameter": 18e-6,
-        "hexa_boundary_vertices": [0, 27],  # 189
-        "hexa_boundary_values": [13332., 8665.],
-        "hexa_boundary_types": [1, 1],
-        "stroke_edges": [0, 1],  # Example: Occlude 2 edges at inflow - manually assigning of blocked vessel ids
-        "diameter_blocked_edges": .5e-6,
+        "hexa_edge_length": 62.e-6,
+        "hexa_diameter": 4.e-6,
+        "hexa_boundary_vertices": [0, 27],
+        "hexa_boundary_values": [2, 1],
+        "hexa_boundary_types": [1, 1],  # 1: pressure & 2: flow rate
 
         # Import network from csv options. Only required for "read_network_option" 2
-        "csv_path_vertex_data": "testcase_healthy_autoregulation_curve/data/network_payne/nodes.csv",
-        "csv_path_edge_data": "testcase_healthy_autoregulation_curve/data/network_payne/edges.csv",
-        "csv_path_boundary_data": "data/network/b6_B_pre_061/boundary_node_data.csv",
+        "csv_path_vertex_data": "data/network/node_data.csv",
+        "csv_path_edge_data": "data/network/edge_data.csv",
+        "csv_path_boundary_data": "data/network/boundary_node_data.csv",
         "csv_diameter": "D", "csv_length": "L",
-        "csv_edgelist_v1": "Source vx", "csv_edgelist_v2": "Target vx",
+        "csv_edgelist_v1": "n1", "csv_edgelist_v2": "n2",
         "csv_coord_x": "x", "csv_coord_y": "y", "csv_coord_z": "z",
         "csv_boundary_vs": "nodeId", "csv_boundary_type": "boundaryType", "csv_boundary_value": "boundaryValue",
 
         # Import network from igraph option. Only required for "read_network_option" 3
-        "pkl_path_igraph": "/storage/homefs/cl22d209/microBlooM_B6_B_init_061_trial_050/testcase_healthy_autoregulation_curve/autoregulation_our_networks/data/networks/B6_B_init_061/B6_B_init_061.pkl",
+        "pkl_path_igraph": "data/network/network_graph.pkl",
         "ig_diameter": "diameter", "ig_length": "length", "ig_coord_xyz": "coords",
         "ig_boundary_type": "boundaryType",  # 1: pressure & 2: flow rate
         "ig_boundary_value": "boundaryValue",
 
         # Write options
-        "write_override_initial_graph": False,  # todo: currently does not do anything
-        "write_path_igraph": "/storage/homefs/cl22d209/microBlooM_B6_B_init_061_trial_050/testcase_healthy_autoregulation_curve/autoregulation_our_networks/output/B6_B_init_061/trial_050/results",  # only required for "write_network_option" 2, 3, 4
-
+        "write_override_initial_graph": False,
+        "write_path_igraph": "data/network/network_simulated",
 
         ##########################
         # Vessel distensibility options
@@ -109,7 +105,7 @@ PARAMETERS = MappingProxyType(
                                                 # 2: Relation based on Sherwin et al. (2003) - non linear p-A relation
 
         # Distensibility edge properties
-        "csv_path_distensibility": "/storage/homefs/cl22d209/microBlooM_B6_B_init_061_trial_050/testcase_healthy_autoregulation_curve/autoregulation_our_networks/data/parameters/B6_B_init_061/B6_B_init_061_dist_parameters_Emodulus_correction_generation_07.csv",
+        "csv_path_distensibility": "data/distensibility/distensibility_parameters.csv",
 
         ##########################
         # Autoregulation options
@@ -117,7 +113,7 @@ PARAMETERS = MappingProxyType(
 
         # Modelling constants
         "sensitivity_direct_stress": 4.,        # Sensitivity factor of direct stresses
-        "sensitivity_shear_stress": .5,        # Sensitivity factor of direct stresses
+        "sensitivity_shear_stress": .5,         # Sensitivity factor of direct stresses
 
         "relaxation_factor": 0.1,               # Alpha - relaxation factor
 
@@ -132,16 +128,14 @@ PARAMETERS = MappingProxyType(
                                                 # 2: Our approach - Update diameters by adjusting the autoregulation model proposed by Payne et al. (2023)
 
         # Autoregulation edge properties
-        "csv_path_autoregulation": "/storage/homefs/cl22d209/microBlooM_B6_B_init_061_trial_050/testcase_healthy_autoregulation_curve/autoregulation_our_networks/data/parameters/B6_B_init_061/B6_B_init_061_auto_parameters_Emodulus_correction_generation_07.csv",
+        "csv_path_autoregulation": "data/autoregulation/autoregulation_parameters.csv",
 
-        "sensitivity_analysis": False,
     }
 )
 
 
 def model_simulation(percent):
 
-    print("\nPercent of Inlet Pressure Drop: " + str(round(percent * 100)) + "%")
     # Create object to set up the simulation and initialise the simulation
     setup_simulation = setup.SetupSimulation()
     # Initialise the implementations based on the parameters specified
@@ -162,7 +156,7 @@ def model_simulation(percent):
 
     autoregulation = Autoregulation(flow_network, imp_read_auto_parameters, imp_auto_baseline, imp_auto_feedback_model)
 
-    flow_network.percent = round(percent * 100)  ### REMOVE
+    flow_network.percent_pressure_change = round(percent * 100)
 
     # Import or generate the network - Import data for the pre-stroke state
     print("Read network: ...")
@@ -171,7 +165,7 @@ def model_simulation(percent):
 
     # Baseline
     # Diameters at baseline.
-    # They are needed to compute the reference pressure and diameters - only for distensibility_ref_state: 3
+    # They are needed to compute the reference pressure and diameters
     print("Solve baseline flow (for reference): ...")
     flow_network.update_transmissibility()
     flow_network.update_blood_flow()
@@ -180,35 +174,6 @@ def model_simulation(percent):
     print("Check flow balance: ...")
     flow_network.check_flow_balance()
     print("Check flow balance: DONE")
-
-    igraph_pkl_path = PARAMETERS["pkl_path_igraph"]  # existing igraph network
-    graph = igraph.Graph.Read_Pickle(igraph_pkl_path)
-    nr_vs = graph.vcount()
-    COW_in = np.arange(nr_vs)[np.array(graph.vs["COW_in"]) == 1]
-    inlet_edges = np.array(graph.incident(COW_in[0]))
-
-    density = 1046  # kg/m^3
-    # C57BL/6 I
-    total_tissue_volume_B6_I = 9.92446030965163 * 1.00E-09  # m^3
-    total_tissue_mass_B6_I = total_tissue_volume_B6_I * density * 1000  # g_tissue
-
-    # C57BL/6 II
-    # total_tissue_volume_B6_II = 10.072949889903173 * 1.00E-09  # m^3
-    # total_tissue_mass_B6_II = total_tissue_volume_B6_II * density * 1000  # g_tissue
-
-    # BALB/c I
-    # total_tissue_volume_balbc_I = 9.863212663611106 * 1.00E-09  # m^3
-    # total_tissue_mass_balbc_I = total_tissue_volume_balbc_I * density * 1000  # g_tissue
-
-    # BALB/c II
-    # total_tissue_volume_balbc_II = 11.935570165529526 * 1.00E-09 # m^3
-    # total_tissue_mass_balbc_II = total_tissue_volume_balbc_II * density * 1000  # g_tissue
-
-    flow_rate_inlet_edges_data_es_base = np.abs(flow_network.flow_rate[inlet_edges])
-    total_flow_base = np.sum(flow_rate_inlet_edges_data_es_base) * 1E06 * 60  # ml_blood/min
-    CBF_base = total_flow_base / total_tissue_mass_B6_I * 100  # ml_blood/(min*100g_tissue)
-
-    print("Baseline - CBF [ml/min/100g]: {:.2f}".format(CBF_base))
 
     if percent == 1:
         flow_network.write_network()
@@ -244,7 +209,6 @@ def model_simulation(percent):
     print("Update the diameters based on Compliance feedback model: ...", flush=True)
     tol = 1.0E-6
     autoregulation.diameter_previous = flow_network.diameter  # Previous diameters to monitor convergence of diameters
-
     max_rel_change_ar = np.array([])
     end_iteration = 0
     max_iterations = 2000000
@@ -273,36 +237,30 @@ def model_simulation(percent):
                 sys.exit("Fail to update the diameters based on Compliance feedback model ...")
     print("Update the diameters based on Compliance feedback model: DONE")
 
-    # After pressure drop
-    flow_rate_inlet_edges_data_es_B6_I = np.abs(flow_network.flow_rate[inlet_edges])
-    total_flow_B6_I = np.sum(flow_rate_inlet_edges_data_es_B6_I) * 1E06 * 60  # ml_blood/min
-    CBF = total_flow_B6_I / total_tissue_mass_B6_I * 100  # ml_blood/(min*100g_tissue)
-    print("After pressure drop - CBF [ml/min/100g]: {:.2f}".format(CBF))
-    print("Rel CBF: {:.5f}".format(CBF / CBF_base))
     fig, ax = plt.subplots()
     itarations = np.arange(1, end_iteration + 2, dtype=int)
     ax.plot(itarations, max_rel_change_ar)
     ax.set_yscale('log')
     ax.set_xlabel("Iterations", fontsize=16)
-    ax.set_ylabel("Max Rel Diameter Change [-]", fontsize=16)
+    ax.set_ylabel("Max Rel. Diameter Change [-]", fontsize=16)
     ax.set_title("Convergence Curve", fontsize=16)
-    plt.savefig("/storage/homefs/cl22d209/microBlooM_B6_B_init_061_trial_050/testcase_healthy_autoregulation_curve/autoregulation_our_networks/output/B6_B_init_061/trial_050/"
-                "Convergence_curve_" + str(flow_network.percent) + ".png")
+    plt.savefig("Convergence_curve_" + str(flow_network.percent_pressure_change) + ".png")
     plt.close()
 
+    # Export data
     rel_stiffness = autoregulation.rel_stiffness
     rel_compliance = autoregulation.rel_compliance
-    sens_shear = autoregulation.sens_shear
-    sens_direct = autoregulation.sens_direct
+    sensitivity_shear = autoregulation.sens_shear
+    sensitivity_direct = autoregulation.sens_direct
 
     flow_network.rel_stiffness = np.ones(flow_network.nr_of_es) * (-1.)
     flow_network.rel_stiffness[autoregulation.eid_vessel_autoregulation] = rel_stiffness
     flow_network.rel_compliance = np.ones(flow_network.nr_of_es) * (-1.)
     flow_network.rel_compliance[autoregulation.eid_vessel_autoregulation] = rel_compliance
-    flow_network.sens_shear = np.zeros(flow_network.nr_of_es)
-    flow_network.sens_shear[autoregulation.eid_vessel_autoregulation] = sens_shear
-    flow_network.sens_direct = np.zeros(flow_network.nr_of_es)
-    flow_network.sens_direct[autoregulation.eid_vessel_autoregulation] = sens_direct
+    flow_network.sensitivity_shear = np.zeros(flow_network.nr_of_es)
+    flow_network.sensitivity_shear[autoregulation.eid_vessel_autoregulation] = sensitivity_shear
+    flow_network.sensitivity_direct = np.zeros(flow_network.nr_of_es)
+    flow_network.sensitivity_direct[autoregulation.eid_vessel_autoregulation] = sensitivity_direct
 
     flow_network.write_network()
 
@@ -311,7 +269,7 @@ def model_simulation(percent):
 
 # Function to execute in parallel
 def task(percent):
-    print("\nPercent of Inlet Pressure Drop: " + str(round(percent * 100)) + "%")
+    print("\nPercent of Inlet Pressure Chance: " + str(round(percent * 100)) + "%")
     model_simulation(percent)
     return
 

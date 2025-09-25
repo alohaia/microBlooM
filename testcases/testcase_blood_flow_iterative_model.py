@@ -44,7 +44,8 @@ PARAMETERS = MappingProxyType(
         # Elastic vessel - vascular properties (tube law) - Only required for distensibility and autoregulation models
         "pressure_external": 0.,  # Constant external pressure
         "read_vascular_properties_option": 1,  # 1: Do not read anything
-        "tube_law_ref_state_option": 1,  # 1: No update of diameters due to vessel distensibility
+        "tube_law_ref_state_option": 1,  # 1: No compute of reference diameters (d_ref)
+        "csv_path_vascular_properties": "not_needed",  # Young's Modulus and Wall Thickness for all vessels
 
         # Blood properties
         "ht_constant": 0.3,  # only required if RBC impact is considered

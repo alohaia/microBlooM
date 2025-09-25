@@ -9,7 +9,7 @@ import source.bloodflowmodel.build_system as buildsystem
 import source.bloodflowmodel.rbc_velocity as rbc_velocity
 import source.bloodflowmodel.iterative as iterative_routine
 import source.bloodflowmodel.flow_balance as flow_balance
-import source.distensibilitymodules.initialise_tube_law as initialise_tube_law
+import source.distensibilitymodules.initialise_tube_law as init_tube_law
 from types import MappingProxyType
 
 
@@ -22,7 +22,7 @@ class FlowNetwork(object):
                  imp_solver: pressureflowsolver.PressureFlowSolver, imp_rbcvelocity: rbc_velocity.RbcVelocity,
                  imp_iterative: iterative_routine.IterativeRoutine, imp_balance: flow_balance.FlowBalance,
                  imp_read_vascular_properties: read_vascular_properties.ReadVascularProperties,
-                 imp_tube_law_ref_state: initialise_tube_law.TubeLawInitialision,
+                 imp_tube_law_ref_state: init_tube_law.TubeLawInitialision,
                  PARAMETERS: MappingProxyType):
 
         # Network attributes
@@ -70,6 +70,14 @@ class FlowNetwork(object):
         self.wall_thickness = None  # Vessel wall thickness
         self.nu = 0.5  # Poisson ratio of the vessel wall. nu = 0.5, if vessel walls are incompressible
 
+        # For autoregulation model (Variables for export)
+        self.percent_pressure_change = None  # Precent of pressure change
+        self.rel_stiffness = None  # Relative stiffness
+        self.rel_compliance = None  # Relative Compliance
+        self.sensitivity_direct = None  # sensitivity for the direct stress, Sσ
+        self.sensitivity_shear = None  # sensitivity for the shear stress, Sτ
+
+
         # "References" to implementations
         self._imp_readnetwork = imp_readnetwork
         self._imp_writenetwork = imp_writenetwork
@@ -87,8 +95,6 @@ class FlowNetwork(object):
         # Threshold for zero-loops
         self.zeroFlowThreshold = None
 
-        # Threshold for zero-loops
-        self.zeroFlowThreshold = None
 
         # "Reference" to parameter dict
         self._PARAMETERS = PARAMETERS
