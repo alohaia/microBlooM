@@ -51,16 +51,12 @@ class Autoregulation(object):
 
         # Loop - Compliance feedback model
         self.iteration = None  # iterations for the compliance feedback model
-        self.direct_stress_previous = None #### Check if I need it ####
-        self.volume_previous = None  #### Check if I need it ####
 
         # "References" to implementations
         self._imp_read_auto_parameters = imp_read_auto_parameters
         self._imp_auto_baseline = imp_auto_baseline
         self._imp_auto_feedback_model = imp_auto_feedback_model
 
-        self.original_eids_auto = None #### Check if I need it ####
-        self.nr_change_total_shear = None #### Check if I need it ####
 
     def initialise_autoregulation(self):
         """
