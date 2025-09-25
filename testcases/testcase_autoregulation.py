@@ -9,7 +9,7 @@ Capabilities:
 1. Import a network from file or generate a hexagonal network
 2. Compute the edge transmissibilities with taking the impact of RBCs into account (Fahraeus, Fahraeus-Linquist effects)
 3. Solve for flow rates, pressures and RBC velocities
-4. Update the vessel diameters based on the current pressure distribution
+4. Update the vessel diameters based on our autoregulation model
 5. Save the results in a file
 """
 import sys
@@ -18,7 +18,6 @@ import igraph
 import matplotlib.pyplot as plt
 
 from source.flow_network import FlowNetwork
-from source.bloodflowmodel.flow_balance import FlowBalance
 from source.distensibility import Distensibility
 from source.autoregulation import Autoregulation
 from types import MappingProxyType
@@ -144,23 +143,20 @@ def model_simulation(percent):
 
     print("\nPercent of Inlet Pressure Drop: " + str(round(percent * 100)) + "%")
     # Create object to set up the simulation and initialise the simulation
-    setup_blood_flow = setup.SetupSimulation()
+    setup_simulation = setup.SetupSimulation()
     # Initialise the implementations based on the parameters specified
     imp_readnetwork, imp_writenetwork, imp_ht, imp_hd, imp_transmiss, imp_velocity, imp_buildsystem, \
-        imp_solver, imp_iterative, imp_balance, imp_read_vascular_properties, imp_tube_law_ref_state = setup_blood_flow.setup_bloodflow_model(PARAMETERS)
+        imp_solver, imp_iterative, imp_balance, imp_read_vascular_properties, imp_tube_law_ref_state = setup_simulation.setup_bloodflow_model(PARAMETERS)
 
-    imp_read_dist_parameters, imp_dist_pres_area_relation = setup_blood_flow.setup_distensibility_model(PARAMETERS)
+    imp_read_dist_parameters, imp_dist_pres_area_relation = setup_simulation.setup_distensibility_model(PARAMETERS)
 
-    imp_read_auto_parameters, imp_auto_baseline, imp_auto_feedback_model = \
-        setup_blood_flow.setup_autoregulation_model(PARAMETERS)
+    imp_read_auto_parameters, imp_auto_baseline, imp_auto_feedback_model = setup_simulation.setup_autoregulation_model(PARAMETERS)
 
     # Build flownetwork object and pass the implementations of the different submodules, which were selected in
     #  the parameter file
     flow_network = FlowNetwork(imp_readnetwork, imp_writenetwork, imp_ht, imp_hd, imp_transmiss, imp_buildsystem,
-                               imp_solver, imp_velocity, imp_read_vascular_properties, imp_tube_law_ref_state,
-                               PARAMETERS)
-
-    flow_balance = FlowBalance(flow_network)
+                               imp_solver, imp_velocity, imp_iterative, imp_balance, imp_read_vascular_properties,
+                               imp_tube_law_ref_state, PARAMETERS)
 
     distensibility = Distensibility(flow_network, imp_read_dist_parameters, imp_dist_pres_area_relation)
 
@@ -171,7 +167,7 @@ def model_simulation(percent):
     # Import or generate the network - Import data for the pre-stroke state
     print("Read network: ...")
     flow_network.read_network()
-    print("Read network: DONE", flush=True)
+    print("Read network: DONE")
 
     # Baseline
     # Diameters at baseline.
@@ -179,10 +175,10 @@ def model_simulation(percent):
     print("Solve baseline flow (for reference): ...")
     flow_network.update_transmissibility()
     flow_network.update_blood_flow()
-    print("Solve baseline flow (for reference): DONE", flush=True)
+    print("Solve baseline flow (for reference): DONE")
 
     print("Check flow balance: ...")
-    flow_balance.check_flow_balance()
+    flow_network.check_flow_balance()
     print("Check flow balance: DONE")
 
     igraph_pkl_path = PARAMETERS["pkl_path_igraph"]  # existing igraph network
@@ -220,7 +216,7 @@ def model_simulation(percent):
 
     print("Initialise tube law for elastic vessels based on baseline results: ...")
     flow_network.initialise_tube_law()
-    print("Initialise tube law for elastic vessels based on baseline results: Done", flush=True)
+    print("Initialise tube law for elastic vessels based on baseline results: Done")
 
     # Save pressure filed and diameters at baseline.
     autoregulation.diameter_baseline = np.copy(flow_network.diameter)
@@ -231,12 +227,12 @@ def model_simulation(percent):
 
     print("Initialise distensibility model based on baseline results: ...")
     distensibility.initialise_distensibility()
-    print("Initialise distensibility model based on baseline results: DONE", flush=True)
+    print("Initialise distensibility model based on baseline results: DONE")
 
     print("Initialise autoregulation model: ...")
     autoregulation.initialise_autoregulation()
     autoregulation.alpha = PARAMETERS["relaxation_factor"]
-    print("Initialise autoregulation model: DONE", flush=True)
+    print("Initialise autoregulation model: DONE")
 
     # Change the intel pressure boundary condition - Mean arterial pressure (MAP) of the network
     print("Change the intel pressure boundary condition - MAP: ...")
@@ -256,7 +252,7 @@ def model_simulation(percent):
         autoregulation.iteration = i
         flow_network.update_transmissibility()
         flow_network.update_blood_flow()
-        flow_balance.check_flow_balance()
+        flow_network.check_flow_balance()
         distensibility.update_vessel_diameters_dist()
         autoregulation.update_vessel_diameters_auto()
         rel_change = np.abs(
@@ -265,7 +261,7 @@ def model_simulation(percent):
         # convergence criteria
         if (i + 1) % 10 == 0:
             print("Autoregulation update: it=" + str(i + 1) + ", residual = " + "{:.2e}".format(np.max(rel_change))
-                  + " um (tol = " + "{:.2e}".format(tol) + ")", flush=True)
+                  + " um (tol = " + "{:.2e}".format(tol) + ")")
 
         if np.max(rel_change) < tol:
             print("Autoregulation update: DONE")
@@ -275,7 +271,7 @@ def model_simulation(percent):
             autoregulation.diameter_previous = np.copy(flow_network.diameter)
             if i == max_iterations - 1:
                 sys.exit("Fail to update the diameters based on Compliance feedback model ...")
-    print("Update the diameters based on Compliance feedback model: DONE", flush=True)
+    print("Update the diameters based on Compliance feedback model: DONE")
 
     # After pressure drop
     flow_rate_inlet_edges_data_es_B6_I = np.abs(flow_network.flow_rate[inlet_edges])
@@ -315,12 +311,12 @@ def model_simulation(percent):
 
 # Function to execute in parallel
 def task(percent):
-    print("\nPercent of CoW Pressure Drop: " + str(round(percent * 100)) + "%", flush=True)
+    print("\nPercent of Inlet Pressure Drop: " + str(round(percent * 100)) + "%")
     model_simulation(percent)
     return
 
 
-print("B6_B_init_061", flush=True)
+print("[Network Name]")
 
 # Number of CPUs to use
 # num_cpus = multiprocessing.cpu_count()

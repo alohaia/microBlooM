@@ -100,15 +100,16 @@ PARAMETERS = MappingProxyType(
 )
 
 # Create an object to set up the simulation and initialise the simulation
-setup_blood_flow = setup.SetupSimulation()
+setup_simulation = setup.SetupSimulation()
 # Initialise the implementations based on the parameters specified
 imp_readnetwork, imp_writenetwork, imp_ht, imp_hd, imp_transmiss, imp_velocity, imp_buildsystem, \
-    imp_solver, imp_iterative, imp_balance, imp_read_vascular_properties, imp_tube_law_ref_state = setup_blood_flow.setup_bloodflow_model(PARAMETERS)
+    imp_solver, imp_iterative, imp_balance, imp_read_vascular_properties, imp_tube_law_ref_state = setup_simulation.setup_bloodflow_model(PARAMETERS)
 
 # Build flownetwork object and pass the implementations of the different submodules, which were selected in
 #  the parameter file
 flow_network = FlowNetwork(imp_readnetwork, imp_writenetwork, imp_ht, imp_hd, imp_transmiss, imp_buildsystem,
-                           imp_solver, imp_velocity, imp_iterative, imp_balance, imp_read_vascular_properties, imp_tube_law_ref_state, PARAMETERS)
+                           imp_solver, imp_velocity, imp_iterative, imp_balance, imp_read_vascular_properties,
+                           imp_tube_law_ref_state, PARAMETERS)
 
 # Import or generate the network
 print("Read network: ...")

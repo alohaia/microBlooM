@@ -78,18 +78,20 @@ PARAMETERS = MappingProxyType(
         # Note: the extension of the output file is automatically added later in the function
         "write_path_igraph": "data/network/network_simulated",
 
-        ################################
+        ##########################
         # Vessel distensibility options
-        ################################
+        ##########################
 
         # Set up distensibility model
-        "distensibility_model": 3,   # 1: No update of diameters due to vessel distensibility
-                                     # 2: Passive diam changes, tube law. 1/D_ref ≈ 1/D. p_ext = p_base, d_ref = d_base
-                                     # 3: Passive diam changes, tube law. 1/D_ref ≈ 1/D. p_ext = const, d_ref computed.
+        "read_dist_parameters_option": 2,       # 1: Do not read anything
+                                                # 2: Read from csv file
+
+        "dist_pres_area_relation_option": 2,    # 1: No update of diameters due to vessel distensibility
+                                                # 2: Relation based on Sherwin et al. (2003) - non linear p-A relation
 
         # Distensibility edge properties
-        "csv_path_distensibility": "data/distensibility/distensibility_parameters.csv",
-        "pressure_external": 0.  # Constant external pressure as reference pressure (only for distensibility_model 2)
+        "csv_path_distensibility": "/storage/homefs/cl22d209/microBlooM_B6_B_init_061_trial_050/testcase_healthy_autoregulation_curve/autoregulation_our_networks/data/parameters/B6_B_init_061/B6_B_init_061_dist_parameters_Emodulus_correction_generation_07.csv",
+
     }
 )
 
@@ -114,24 +116,50 @@ flow_network.read_network()
 print("Read network: DONE")
 
 # Baseline
+# Diameters at baseline.
+# They are needed to compute the reference pressure and diameters
+print("Solve baseline flow (for reference): ...")
 flow_network.update_transmissibility()
 flow_network.update_blood_flow()
+print("Solve baseline flow (for reference): DONE")
+
+print("Check flow balance: ...")
+flow_network.check_flow_balance()
+print("Check flow balance: DONE")
+
+print("Initialise tube law for elastic vessels based on baseline results: ...")
+flow_network.initialise_tube_law()
+print("Initialise tube law for elastic vessels based on baseline results: Done")
+
+print("Initialise distensibility model based on baseline results: ...")
+distensibility.initialise_distensibility()
+print("Initialise distensibility model based on baseline results: DONE")
 
 # Post stroke
-distensibility.initialise_distensibility()
+# Adjust this part according your simulation scenario
 stroke_edges = np.array([0, 1])  # Example: Occlude 2 edges at inflow
 flow_network.diameter[stroke_edges] = .5e-6
 
-distensibility.diameter_ref = np.delete(distensibility.diameter_ref, stroke_edges)
-distensibility.e_modulus = np.delete(distensibility.e_modulus, stroke_edges)
-distensibility.wall_thickness = np.delete(distensibility.wall_thickness, stroke_edges)
+# all vessels, except stroke vessels, are distensible
 distensibility.eid_vessel_distensibility = np.delete(distensibility.eid_vessel_distensibility, stroke_edges)
 distensibility.nr_of_edge_distensibilities = np.size(distensibility.eid_vessel_distensibility)
 
 # Update diameters and iterate
+print("Update the diameters based on Distensibility Law: ...")
+tol = 1.e-06
+diameters_current = flow_network.diameter  # Previous diameters to monitor convergence of diameters
 for i in range(100):
     flow_network.update_transmissibility()
     flow_network.update_blood_flow()
-    distensibility.update_vessel_diameters()
+    flow_network.check_flow_balance()
+    distensibility.update_vessel_diameters_dist()
+    print("Distensibility update: it=" + str(i + 1) + ", residual = " + "{:.2e}".format(
+        np.max(np.abs(flow_network.diameter - diameters_current) /diameters_current)) + " (tol = " + "{:.2e}".format(tol)+")")
+    if np.max(np.abs(flow_network.diameter - diameters_current) / diameters_current) < tol:
+        print("Distensibility update: DONE")
+        break
+    else:
+        diameters_current = flow_network.diameter
+print("Update the diameters based on Distensibility Law: DONE")
 
 flow_network.write_network()

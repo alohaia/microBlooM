@@ -119,7 +119,7 @@ setup_simulation = setup.SetupSimulation()
 
 # Initialise objects related to simulate blood flow without RBC tracking.
 imp_readnetwork, imp_writenetwork, imp_ht, imp_hd, imp_transmiss, imp_velocity, imp_buildsystem, \
-    imp_solver = setup_simulation.setup_bloodflow_model(PARAMETERS)
+    imp_solver, imp_iterative, imp_balance, imp_read_vascular_properties, imp_tube_law_ref_state = setup_simulation.setup_bloodflow_model(PARAMETERS)
 
 # Initialise objects related to the inverse model.
 imp_readtargetvalues, imp_readparameters, imp_adjoint_parameter, imp_adjoint_solver, \
@@ -127,7 +127,8 @@ imp_readtargetvalues, imp_readparameters, imp_adjoint_parameter, imp_adjoint_sol
 
 # Initialise flownetwork and inverse model objects
 flow_network = FlowNetwork(imp_readnetwork, imp_writenetwork, imp_ht, imp_hd, imp_transmiss, imp_buildsystem,
-                           imp_solver, imp_velocity, PARAMETERS)
+                           imp_solver, imp_velocity, imp_iterative, imp_balance, imp_read_vascular_properties,
+                           imp_tube_law_ref_state, PARAMETERS)
 inverse_model = InverseModel(flow_network, imp_readtargetvalues, imp_readparameters, imp_adjoint_parameter,
                              imp_adjoint_solver, imp_alpha_mapping, PARAMETERS)
 
@@ -143,6 +144,10 @@ print("Update flow, pressure and velocity: ...")
 flow_network.update_blood_flow()
 print("Update flow, pressure and velocity: DONE")
 
+print("Check flow balance: ...")
+flow_network.check_flow_balance()
+print("Check flow balance: DONE")
+
 inverse_model.initialise_inverse_model()
 inverse_model.update_cost()
 
@@ -153,6 +158,7 @@ for i in range(nr_of_iterations):
     inverse_model.update_state()
     flow_network.update_transmissibility()
     flow_network.update_blood_flow()
+    flow_network.check_flow_balance()
     inverse_model.update_cost()
     cost_h.append(inverse_model.f_h)
 

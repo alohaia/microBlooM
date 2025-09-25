@@ -194,6 +194,13 @@ class FlowNetwork(object):
         """
         self._imp_balance.check_flow_balance(self)
 
+    def initialise_tube_law(self):
+        """
+        Update transmissibility of all edges in the vascular network.
+        """
+        self._imp_read_vascular_properties.read(self)
+        self._imp_tube_law_ref_state.initialise_ref_state(self)
+
     # Needed for Iterative procedure
     @property
     def imp_buildsystem(self):
