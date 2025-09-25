@@ -11,7 +11,6 @@ import numpy as np
 import pandas as pd
 
 from source.flow_network import FlowNetwork
-from source.bloodflowmodel.flow_balance import FlowBalance
 from types import MappingProxyType
 import source.setup.setup as setup
 
