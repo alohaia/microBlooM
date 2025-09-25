@@ -42,8 +42,8 @@ PARAMETERS = MappingProxyType(
                                     # 4: Iterative routine (Rasmussen et al. 2018) [https://onlinelibrary.wiley.com/doi/10.1111/micc.12445]
 
         # Blood properties
-        "ht_constant": 4E-05,  # only required if RBC impact is considered
-        "mu_plasma": 0.0052,
+        "ht_constant": 0.3,  # only required if RBC impact is considered
+        "mu_plasma": 0.0012,
         "boundary_hematocrit": 0.4,
         "network_name": "Network_001", 
 
@@ -65,7 +65,7 @@ PARAMETERS = MappingProxyType(
 
         # Import network from csv options. Only required for "read_network_option" 2
         "csv_path_vertex_data": "data/network/node_data.csv",
-        "csv_path_edge_data": "data/network/edge_data.csv"",
+        "csv_path_edge_data": "data/network/edge_data.csv",
         "csv_path_boundary_data": "data/network/boundary_node_data.csv",
         "csv_diameter": "D", "csv_length": "L",
         "csv_edgelist_v1": "n1", "csv_edgelist_v2": "n2",

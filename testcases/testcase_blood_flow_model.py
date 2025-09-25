@@ -33,6 +33,10 @@ PARAMETERS = MappingProxyType(
                                  # 3: Laws by Pries and Secomb (2005)
         "solver_option": 1,  # 1: Direct solver
                              # 2: PyAMG solver
+        "iterative_routine": 1,  # 1: Forward problem
+                                 # 2: Iterative routine (ours)
+                                 # 3: Iterative routine (Berg Thesis) [https://oatao.univ-toulouse.fr/25471/1/Berg_Maxime.pdf]
+                                 # 4: Iterative routine (Rasmussen et al. 2018) [https://onlinelibrary.wiley.com/doi/10.1111/micc.12445]
 
         # Blood properties
         "ht_constant": 0.3,  # only required if RBC impact is considered
@@ -42,7 +46,7 @@ PARAMETERS = MappingProxyType(
         # True: the vessel with low flow are set to zero
         # The threshold is set as the max of mass flow balance
         # The function is reported in set_low_flow_threshold()
-        "ZeroFlowThreshold": True,
+        "ZeroFlowThreshold": False,
 
         # Hexagonal network properties. Only required for "read_network_option" 1
         "nr_of_hexagon_x": 3,
