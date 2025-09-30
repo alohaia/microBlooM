@@ -155,7 +155,7 @@ class PressureFlowSolverSparseDirect(PressureFlowSolver):
         """
         Solve the linear system of equations for the pressure and update the pressure in flownetwork.
         :param flownetwork: flow network object
-        :type flownetwork: source.flow_network.FlowNetworks
+        :type flownetwork: source.flow_network.FlowNetwork
         """
         pressure = spsolve(flownetwork.system_matrix, flownetwork.rhs)
 

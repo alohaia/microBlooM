@@ -47,6 +47,10 @@ PARAMETERS = MappingProxyType(
         "solver_option": 1,  # 1: Direct solver
                              # 2: PyAMG solver
                              # 3-...: other solvers
+        "iterative_routine": 1,  # 1: Forward problem
+                                 # 2: Iterative routine (ours)
+                                 # 3: Iterative routine (Berg Thesis) [https://oatao.univ-toulouse.fr/25471/1/Berg_Maxime.pdf]
+                                 # 4: Iterative routine (Rasmussen et al. 2018) [https://onlinelibrary.wiley.com/doi/10.1111/micc.12445]
 
         # Elastic vessel - vascular properties (tube law) - Only required for distensibility and autoregulation models
         "pressure_external": 0.,                    # Constant external pressure
@@ -64,6 +68,12 @@ PARAMETERS = MappingProxyType(
         # Blood properties
         "ht_constant": 0.3,  # only required if RBC impact is considered
         "mu_plasma": 0.0012,
+
+        # Zero Flow Vessel Threshold
+        # True: the vessel with low flow are set to zero
+        # The threshold is set as the max of mass-flow balance
+        # The function is reported in set_low_flow_threshold()
+        "ZeroFlowThreshold": False,
 
         # Hexagonal network properties. Only required for "read_network_option" 1
         "nr_of_hexagon_x": 3,
@@ -133,7 +143,6 @@ PARAMETERS = MappingProxyType(
     }
 )
 
-
 def model_simulation(percent):
 
     # Create object to set up the simulation and initialise the simulation
@@ -199,6 +208,7 @@ def model_simulation(percent):
     autoregulation.alpha = PARAMETERS["relaxation_factor"]
     print("Initialise autoregulation model: DONE")
 
+    ### Modify this part based on your simulation scenario ###
     # Change the intel pressure boundary condition - Mean arterial pressure (MAP) of the network
     print("Change the intel pressure boundary condition - MAP: ...")
     flow_network.boundary_val[0] *= percent  # change the inlet pressure -- a 15 % drop in the starting inlet pressure
@@ -224,8 +234,8 @@ def model_simulation(percent):
         max_rel_change_ar = np.append(max_rel_change_ar, np.max(rel_change))
         # convergence criteria
         if (i + 1) % 10 == 0:
-            print("Autoregulation update: it=" + str(i + 1) + ", residual = " + "{:.2e}".format(np.max(rel_change))
-                  + " um (tol = " + "{:.2e}".format(tol) + ")")
+            print("Percent: "+str(round(percent * 100))+"% - Autoregulation update: it=" + str(i + 1) +
+                  ", residual = " + "{:.2e}".format(np.max(rel_change)) + " (tol = " + "{:.2e}".format(tol) + ")")
 
         if np.max(rel_change) < tol:
             print("Autoregulation update: DONE")
@@ -244,7 +254,7 @@ def model_simulation(percent):
     ax.set_xlabel("Iterations", fontsize=16)
     ax.set_ylabel("Max Rel. Diameter Change [-]", fontsize=16)
     ax.set_title("Convergence Curve", fontsize=16)
-    plt.savefig("Convergence_curve_" + str(flow_network.percent_pressure_change) + ".png")
+    plt.savefig("output/simulation_monitoring_autoregulation/Convergence_curve_" + str(flow_network.percent_pressure_change) + ".png")
     plt.close()
 
     # Export data
@@ -276,7 +286,7 @@ def task(percent):
 
 print("[Network Name]")
 
-# Number of CPUs to use
+# Number of CPUs to use - Adjust
 # num_cpus = multiprocessing.cpu_count()
 num_cpus = 20
 
@@ -300,6 +310,5 @@ end_time = time.time()
 # Calculate the elapsed time
 elapsed_time = end_time - start_time
 print(f"All tasks completed in {elapsed_time:.2f} seconds.", flush=True)
-
 
 print("#########")

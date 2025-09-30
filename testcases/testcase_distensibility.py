@@ -39,6 +39,19 @@ PARAMETERS = MappingProxyType(
                                  # 3: Iterative routine (Berg Thesis) [https://oatao.univ-toulouse.fr/25471/1/Berg_Maxime.pdf]
                                  # 4: Iterative routine (Rasmussen et al. 2018) [https://onlinelibrary.wiley.com/doi/10.1111/micc.12445]
 
+        # Elastic vessel - vascular properties (tube law) - Only required for distensibility and autoregulation models
+        "pressure_external": 0.,  # Constant external pressure
+        "read_vascular_properties_option": 2,  # 1: Do not read anything
+                                               # 2: Read vascular properties from csv file
+        "tube_law_ref_state_option": 4,  # 1: No compute of reference diameters (d_ref)
+                                         # 2: Passive diam changes, tube law. 1/D_ref ≈ 1/D. p_ext = p_base,
+                                            # d_ref = d_base
+                                         # 3: Passive diam changes, tube law. 1/D_ref ≈ 1/D. p_ext = const,
+                                            # d_ref computed based on Sherwin et al. (2003)
+                                         # 4: Passive diam changes, tube law. 1/D_ref ≈ 1/D. p_ext = const,
+                                            # d_ref computed based on Payne et al. (2023)
+        "csv_path_vascular_properties": "data/vascular_properties/all_eids_vascular_properties.csv",  # Young's Modulus and Wall Thickness for all vessels
+
         # Blood properties
         "ht_constant": 0.3,  # only required if RBC impact is considered
         "mu_plasma": 0.0012,
@@ -90,8 +103,7 @@ PARAMETERS = MappingProxyType(
                                                 # 2: Relation based on Sherwin et al. (2003) - non linear p-A relation
 
         # Distensibility edge properties
-        "csv_path_distensibility": "/storage/homefs/cl22d209/microBlooM_B6_B_init_061_trial_050/testcase_healthy_autoregulation_curve/autoregulation_our_networks/data/parameters/B6_B_init_061/B6_B_init_061_dist_parameters_Emodulus_correction_generation_07.csv",
-
+        "csv_path_distensibility": "data/distensibility/distensibility_parameters.csv",
     }
 )
 
@@ -136,8 +148,8 @@ print("Initialise distensibility model based on baseline results: ...")
 distensibility.initialise_distensibility()
 print("Initialise distensibility model based on baseline results: DONE")
 
-# Post stroke
 # Modify this part based on your simulation scenario
+# Post stroke
 stroke_edges = np.array([0, 1])  # Example: Occlude 2 edges at inflow
 flow_network.diameter[stroke_edges] = .5e-6
 
@@ -148,19 +160,19 @@ distensibility.nr_of_edge_distensibilities = np.size(distensibility.eid_vessel_d
 # Update diameters and iterate
 print("Update the diameters based on Distensibility Law: ...")
 tol = 1.e-06
-diameters_current = flow_network.diameter  # Previous diameters to monitor convergence of diameters
+diameter_previous = flow_network.diameter  # Previous diameters to monitor convergence of diameters
 for i in range(100):
     flow_network.update_transmissibility()
     flow_network.update_blood_flow()
     flow_network.check_flow_balance()
     distensibility.update_vessel_diameters_dist()
     print("Distensibility update: it=" + str(i + 1) + ", residual = " + "{:.2e}".format(
-        np.max(np.abs(flow_network.diameter - diameters_current) /diameters_current)) + " (tol = " + "{:.2e}".format(tol)+")")
-    if np.max(np.abs(flow_network.diameter - diameters_current) / diameters_current) < tol:
+        np.max(np.abs(flow_network.diameter - diameter_previous) /diameter_previous)) + " (tol = " + "{:.2e}".format(tol)+")")
+    if np.max(np.abs(flow_network.diameter - diameter_previous) / diameter_previous) < tol:
         print("Distensibility update: DONE")
         break
     else:
-        diameters_current = flow_network.diameter
+        diameter_previous = flow_network.diameter
 print("Update the diameters based on Distensibility Law: DONE")
 
 flow_network.write_network()
