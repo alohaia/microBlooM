@@ -253,7 +253,7 @@ class SetupSimulation(Setup):
         match PARAMETERS["read_auto_parameters_option"]:
             case 1:  # Do not read anything
                 imp_read_auto_parameters = read_autoregulation_parameters.ReadAutoregulationParametersNothing(PARAMETERS)
-            case 2:  # Read autoregulation porameters from csv file
+            case 2:  # Read autoregulation parameters from csv file
                 imp_read_auto_parameters = read_autoregulation_parameters.ReadAutoregulationParametersFromFile(PARAMETERS)
             case _:
                 sys.exit("Error: Choose valid option to read autoregulation parameters (read_auto_parameters_option)")

@@ -48,7 +48,7 @@ PARAMETERS = MappingProxyType(
         "csv_path_vascular_properties": "not_needed",  # Young's Modulus and Wall Thickness for all vessels
 
         # Blood properties
-        "ht_constant": 0.3,  # only required if RBC impact is considered
+        "ht_constant": 0.45,  # only required if RBC impact is considered
         "mu_plasma": 0.0012,
         "boundary_hematocrit": 0.4,
         "network_name": "Network_001", 

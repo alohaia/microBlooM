@@ -9,7 +9,7 @@ Capabilities:
 1. Import a network from file or generate a hexagonal network
 2. Compute the edge transmissibilities with taking the impact of RBCs into account (Fahraeus, Fahraeus-Linquist effects)
 3. Solve for flow rates, pressures and RBC velocities
-4. Update the vessel diameters based on our autoregulation model
+4. Update the vessel diameters based on our distensibility and autoregulation models
 5. Save the results in a file
 """
 import sys
@@ -63,7 +63,11 @@ PARAMETERS = MappingProxyType(
                                                         # d_ref computed based on Sherwin et al. (2003)
                                                     # 4: Passive diam changes, tube law. 1/D_ref ≈ 1/D. p_ext = const,
                                                         # d_ref computed based on Payne et al. (2023)
-        "csv_path_vascular_properties": "data/vascular_properties/all_eids_vascular_properties.csv",  # Young's Modulus and Wall Thickness for all vessels
+        # Vascular properties - edge properties:
+        # - eid: edge ids
+        # - e_modulus: Young's modulus of the vessel
+        # - wall_thickness: Wall thickness of the vessel
+        "csv_path_vascular_properties": "data/vascular_properties/all_eids_vascular_properties.csv",
 
         # Blood properties
         "ht_constant": 0.3,  # only required if RBC impact is considered
@@ -114,7 +118,8 @@ PARAMETERS = MappingProxyType(
         "dist_pres_area_relation_option": 2,    # 1: No update of diameters due to vessel distensibility
                                                 # 2: Relation based on Sherwin et al. (2003) - non linear p-A relation
 
-        # Distensibility edge properties
+        # Distensibility edge parameters:
+        # - eid_distensibility: edge ids for distensible vessels
         "csv_path_distensibility": "data/distensibility/distensibility_parameters.csv",
 
         ##########################
@@ -137,7 +142,10 @@ PARAMETERS = MappingProxyType(
         "auto_feedback_model_option": 2,        # 1: No update of diameters due to autoregulation
                                                 # 2: Our approach - Update diameters by adjusting the autoregulation model proposed by Payne et al. (2023)
 
-        # Autoregulation edge properties
+        # Autoregulation edge parameters:
+        # - eid_autoregulation: edge ids for autoregulatory vessels
+        # - rel_sensitivity_direct_stress: relative senistivity factor for direct stresses (this variable will be multiplied by "sensitivity_direct_stress" in the read_autoregulation_parameters.py)
+        # - rel_sensitivity_shear_stress: relative senistivity factor for shear stresses (this variable will be multiplied by "sensitivity_shear_stress" in the read_autoregulation_parameters.py)
         "csv_path_autoregulation": "data/autoregulation/autoregulation_parameters.csv",
 
     }

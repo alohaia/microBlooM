@@ -68,9 +68,11 @@ class ReadAutoregulationParametersFromFile(ReadAutoregulationParameters):
         if df_autoregulation['eid_autoregulation'][0] == 'all':
             autoregulation.eid_vessel_autoregulation = np.arange(flownetwork.nr_of_es, dtype=int)
             autoregulation.sens_direct_from_csv = np.ones(flownetwork.nr_of_es, dtype=float) * \
-                                                  df_autoregulation['sensitivity_direct_stress'][0]  # Sσ
-            autoregulation.sens_direct_from_csv = np.ones(flownetwork.nr_of_es, dtype=float) * \
-                                                  df_autoregulation['sensitivity_shear_stress'][0]  # Sτ
+                                                  df_autoregulation['rel_sensitivity_direct_stress'][0] * \
+                                                  self._PARAMETERS["sensitivity_direct_stress"]  # Sσ
+            autoregulation.sens_shear_from_csv = np.ones(flownetwork.nr_of_es, dtype=float) * \
+                                                  df_autoregulation['rel_sensitivity_shear_stress'][0] \
+                                                  * self._PARAMETERS["sensitivity_shear_stress"]  # Sτ
 
         else:
             # Sort prescribed edge ids with autoregulation according to ascending edge ids.
@@ -80,9 +82,9 @@ class ReadAutoregulationParametersFromFile(ReadAutoregulationParameters):
                 sys.exit("Error: Duplicate edge id in autoregulation definition.")
 
             autoregulation.eid_vessel_autoregulation = df_autoregulation["eid_autoregulation"].to_numpy().astype(int)
-            autoregulation.sens_direct_from_csv = df_autoregulation['sensitivity_direct_stress'].to_numpy().astype(float) * \
+            autoregulation.sens_direct_from_csv = df_autoregulation['rel_sensitivity_direct_stress'].to_numpy().astype(float) * \
                                                   self._PARAMETERS["sensitivity_direct_stress"]
-            autoregulation.sens_shear_from_csv = df_autoregulation['sensitivity_shear_stress'].to_numpy().astype(float) * \
+            autoregulation.sens_shear_from_csv = df_autoregulation['rel_sensitivity_shear_stress'].to_numpy().astype(float) * \
                                                  self._PARAMETERS["sensitivity_shear_stress"]
 
         autoregulation.nr_of_edge_autoregulation = np.size(autoregulation.eid_vessel_autoregulation)

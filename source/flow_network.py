@@ -58,12 +58,11 @@ class FlowNetwork(object):
         self.system_matrix = None  # system matrix of linear system of equations
         self.rhs = None  # right hand side of linear system of equations
 
-        self.diameter_baseline = None  #### Check if I need it ####
-
         # Tube law: Reference values
         self.pressure_ref = None
         self.diameter_ref = None
         self.pressure_external = None
+        self.diameter_baseline = None  # For checking the diameter_ref
 
         # Tube law: Material parameters (constants)
         self.e_modulus = None  # E modulus for each vessel with distensibility
