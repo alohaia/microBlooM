@@ -63,8 +63,8 @@ class AdjointMethodImplementations(ABC):
 
         # Type of target value (1: Flow rate, 2: Velocity,
         # True if current target value is of the respective type
-        is_target_type_1 = np.in1d(inversemodel.edge_constraint_type, 1)  # constraint type 1: Flow rate constraint
-        is_target_type_2 = np.in1d(inversemodel.edge_constraint_type, 2)  # constraint type 2: Velocity constraint
+        is_target_type_1 = np.isin(inversemodel.edge_constraint_type, 1)  # constraint type 1: Flow rate constraint
+        is_target_type_2 = np.isin(inversemodel.edge_constraint_type, 2)  # constraint type 2: Velocity constraint
 
         # Identify simulated value related to the corresponding target value.
         value_sim = np.zeros(nr_of_constraints)
@@ -202,8 +202,8 @@ class AdjointMethodImplementations(ABC):
         """
         # Type of target value (1: Flow rate, 2: Velocity)
         # True if current target value is of the respective type
-        is_target_type_1 = np.in1d(inversemodel.edge_constraint_type, 1)  # constraint type 1: Flow rate constraint
-        is_target_type_2 = np.in1d(inversemodel.edge_constraint_type, 2)  # constraint type 2: Velocity constraint
+        is_target_type_1 = np.isin(inversemodel.edge_constraint_type, 1)  # constraint type 1: Flow rate constraint
+        is_target_type_2 = np.isin(inversemodel.edge_constraint_type, 2)  # constraint type 2: Velocity constraint
 
         # Identify simulated value related to the corresponding target value.
         value_sim = np.zeros(inversemodel.nr_of_edge_constraints)  # Initialise with 0. Length is nr of constraints.
@@ -256,8 +256,8 @@ class AdjointMethodImplementationsEdge(AdjointMethodImplementations, ABC):
 
         # Type of target value (1: Flow rate, 2: Velocity)
         # True if current target value is of the respective type
-        is_target_type_1 = np.in1d(inversemodel.edge_constraint_type, 1)  # constraint type 1: Flow rate constraint
-        is_target_type_2 = np.in1d(inversemodel.edge_constraint_type, 2)  # constraint type 2: Velocity constraint
+        is_target_type_1 = np.isin(inversemodel.edge_constraint_type, 1)  # constraint type 1: Flow rate constraint
+        is_target_type_2 = np.isin(inversemodel.edge_constraint_type, 2)  # constraint type 2: Velocity constraint
 
         # Identify simulated value related to the corresponding target value.
         value_sim = np.zeros(inversemodel.nr_of_edge_constraints)  # Initialise with 0. Length is nr of constraints.
@@ -283,10 +283,10 @@ class AdjointMethodImplementationsEdge(AdjointMethodImplementations, ABC):
 
         # Constraints of type 1 (flow rate)
         # True if current edge constraint is of type 1 (flow rate) and has a matching edge parameter.
-        is_current_target_q = np.logical_and(np.in1d(inversemodel.edge_constraint_eid, inversemodel.edge_param_eid),
+        is_current_target_q = np.logical_and(np.isin(inversemodel.edge_constraint_eid, inversemodel.edge_param_eid),
                                              is_target_type_1)
         # True if current edge parameter has a matching edge constraint of type 1 (flow rate)
-        is_current_parameter_q = np.in1d(inversemodel.edge_param_eid,
+        is_current_parameter_q = np.isin(inversemodel.edge_param_eid,
                                          inversemodel.edge_constraint_eid[is_target_type_1])
 
         q_difference = val_difference[is_current_target_q]  # q_simulated - q_target / q_min / q_max
@@ -299,10 +299,10 @@ class AdjointMethodImplementationsEdge(AdjointMethodImplementations, ABC):
 
         # Constraints of type 2 (velocity)
         # True if current edge constraint is of type 2 (velocity) and has a matching edge parameter.
-        is_current_target_u = np.logical_and(np.in1d(inversemodel.edge_constraint_eid,
+        is_current_target_u = np.logical_and(np.isin(inversemodel.edge_constraint_eid,
                                                      inversemodel.edge_param_eid), is_target_type_2)
         # True if current edge parameter has a matching edge constraint of type 2 (velocity)
-        is_current_parameter_u = np.in1d(inversemodel.edge_param_eid,
+        is_current_parameter_u = np.isin(inversemodel.edge_param_eid,
                                          inversemodel.edge_constraint_eid[is_target_type_2])
 
         u_difference = val_difference[is_current_target_u]  # u_simulated - u_target / u_min / u_max
@@ -342,7 +342,7 @@ class AdjointMethodImplementationsEdge(AdjointMethodImplementations, ABC):
 
         # Account for Dirichlet (pressure) boundaries. Set values to 0, if vertex is a pressure boundary.
         pressure_boundary_vs = flownetwork.boundary_vs[flownetwork.boundary_type == 1]  # identify pressure vertices
-        is_pressure_boundary_vs = np.in1d(row, pressure_boundary_vs)
+        is_pressure_boundary_vs = np.isin(row, pressure_boundary_vs)
         data[is_pressure_boundary_vs] = 0.  # Set value to 0 if current vertex is a pressure boundary vertex
 
         # Update sparse matrix
@@ -602,7 +602,7 @@ class AdjointMethodImplementationsAbsBoundaryPressure(AdjointMethodImplementatio
         inversemodel.diameter_baselinevalue = None
 
         # identify the boundary vertices which are parameters
-        is_boundary_parameter = np.in1d(flownetwork.boundary_vs, inversemodel.vertex_param_vid)
+        is_boundary_parameter = np.isin(flownetwork.boundary_vs, inversemodel.vertex_param_vid)
 
         # Vertex parameter and pseudo parameter initialised with base value
         inversemodel.alpha = flownetwork.boundary_val[is_boundary_parameter]
@@ -618,7 +618,7 @@ class AdjointMethodImplementationsAbsBoundaryPressure(AdjointMethodImplementatio
         :param flownetwork: flow network object
         :type flownetwork: source.flow_network.FlowNetwork
         """
-        is_boundary_parameter = np.in1d(flownetwork.boundary_vs, inversemodel.vertex_param_vid)
+        is_boundary_parameter = np.isin(flownetwork.boundary_vs, inversemodel.vertex_param_vid)
         flownetwork.boundary_val[is_boundary_parameter] = inversemodel.alpha
 
     def _get_d_velocity_d_alpha(self, inversemodel, flownetwork):

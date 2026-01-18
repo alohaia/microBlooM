@@ -40,15 +40,15 @@ class ReadNetworkHexagonal(ReadNetwork):
         """
         vessel_diameter = self._PARAMETERS["hexa_diameter"]
         vessel_length = self._PARAMETERS["hexa_edge_length"]
-        nr_of_hexagon_x = np.int(self._PARAMETERS["nr_of_hexagon_x"])
-        nr_of_hexagon_y = np.int(self._PARAMETERS["nr_of_hexagon_y"])
+        nr_of_hexagon_x = int(self._PARAMETERS["nr_of_hexagon_x"])
+        nr_of_hexagon_y = int(self._PARAMETERS["nr_of_hexagon_y"])
 
         if nr_of_hexagon_x % 2 == 0 or nr_of_hexagon_y % 2 == 0:
             raise SystemExit("Error: Choose odd numer of hexagon.")
 
         nr_vs_x = nr_of_hexagon_x + 1  # Number of vertices in x direction
         nr_vs_y = nr_of_hexagon_y * 2 + 1  # Number of vertices in y direction
-        xyz_vs = np.zeros((nr_vs_x * nr_vs_y, 3), dtype=np.float)  # Coordinates x, y, z of vertices
+        xyz_vs = np.zeros((nr_vs_x * nr_vs_y, 3), dtype=float)  # Coordinates x, y, z of vertices
 
         # Create vertices, calculate xyz coordinates:
         for ii in range(nr_vs_x * nr_vs_y):  # Loop over all vertex indices. Current index ii.
@@ -74,7 +74,7 @@ class ReadNetworkHexagonal(ReadNetwork):
 
         # Generate edges; connect vertices by edge list
         nr_of_edges = (nr_vs_x // 2 * (3 * (nr_vs_y - 1) + 1) - (nr_vs_y - 1) // 2)
-        edge_list = np.ones((nr_of_edges, 2), dtype=np.int) * (-1)  # initialise edge list with -1
+        edge_list = np.ones((nr_of_edges, 2), dtype=int) * (-1)  # initialise edge list with -1
         eid = 0
         # Generate the edges that horizontally connect vertices.
         for ii in range(nr_vs_x * nr_vs_y):  # loop over all vertex indices
@@ -126,9 +126,9 @@ class ReadNetworkHexagonal(ReadNetwork):
         flownetwork.xyz = xyz_vs
 
         # Boundaries, sort according to ascending vertex ids
-        df_boundaries = pd.DataFrame({'vs_ids': np.array(self._PARAMETERS["hexa_boundary_vertices"], dtype=np.int),
-                                      'vals': np.array(self._PARAMETERS["hexa_boundary_values"], dtype=np.float),
-                                      'types': np.array(self._PARAMETERS["hexa_boundary_types"], dtype=np.int)})
+        df_boundaries = pd.DataFrame({'vs_ids': np.array(self._PARAMETERS["hexa_boundary_vertices"], dtype=int),
+                                      'vals': np.array(self._PARAMETERS["hexa_boundary_values"], dtype=float),
+                                      'types': np.array(self._PARAMETERS["hexa_boundary_types"], dtype=int)})
 
         df_boundaries = df_boundaries.sort_values('vs_ids')
 
@@ -194,8 +194,8 @@ class ReadNetworkCsv(ReadNetwork):
         flownetwork.diameter = df_edge_data[self._PARAMETERS["csv_diameter"]].to_numpy()
         flownetwork.length = df_edge_data[self._PARAMETERS["csv_length"]].to_numpy()
         # Create edge list from the two columns containing the incident vertices of each edge
-        edge_list = np.vstack([df_edge_data[self._PARAMETERS["csv_edgelist_v1"]].to_numpy().astype(np.int),
-                               df_edge_data[self._PARAMETERS["csv_edgelist_v2"]].to_numpy().astype(np.int)]).transpose()
+        edge_list = np.vstack([df_edge_data[self._PARAMETERS["csv_edgelist_v1"]].to_numpy().astype(int),
+                               df_edge_data[self._PARAMETERS["csv_edgelist_v2"]].to_numpy().astype(int)]).transpose()
         flownetwork.edge_list = edge_list
 
         # Vertex attributes (numpy array containing all dimensions)
@@ -211,9 +211,9 @@ class ReadNetworkCsv(ReadNetwork):
         # Boundaries
         # Sort according to ascending vertex indices of boundaries
         df_boundary_data.sort_values(self._PARAMETERS["csv_boundary_vs"])
-        flownetwork.boundary_vs = df_boundary_data[self._PARAMETERS["csv_boundary_vs"]].to_numpy().astype(np.int)
-        flownetwork.boundary_type = df_boundary_data[self._PARAMETERS["csv_boundary_type"]].to_numpy().astype(np.int)
-        flownetwork.boundary_val = df_boundary_data[self._PARAMETERS["csv_boundary_value"]].to_numpy()  
+        flownetwork.boundary_vs = df_boundary_data[self._PARAMETERS["csv_boundary_vs"]].to_numpy().astype(int)
+        flownetwork.boundary_type = df_boundary_data[self._PARAMETERS["csv_boundary_type"]].to_numpy().astype(int)
+        flownetwork.boundary_val = df_boundary_data[self._PARAMETERS["csv_boundary_value"]].to_numpy()
 
 
 class ReadNetworkIgraph(ReadNetwork):

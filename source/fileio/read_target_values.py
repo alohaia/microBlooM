@@ -55,8 +55,8 @@ class ReadTargetValuesEdge(ReadTargetValues):
 
         # Assign data to inversemodel class
         # Edge attributes
-        inversemodel.edge_constraint_eid = df_target_data["edge_tar_eid"].to_numpy().astype(np.int)
-        inversemodel.edge_constraint_type = df_target_data["edge_tar_type"].to_numpy().astype(np.int)
+        inversemodel.edge_constraint_eid = df_target_data["edge_tar_eid"].to_numpy().astype(int)
+        inversemodel.edge_constraint_type = df_target_data["edge_tar_type"].to_numpy().astype(int)
         inversemodel.edge_constraint_value = df_target_data["edge_tar_value"].to_numpy().astype(np.double)
         inversemodel.edge_constraint_range_pm = df_target_data["edge_tar_range_pm"].to_numpy().astype(np.double)
         inversemodel.edge_constraint_sigma = df_target_data["edge_tar_sigma"].to_numpy().astype(np.double)

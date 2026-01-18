@@ -1,0 +1,109 @@
+---
+title: "main"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+
+source("~/utils.R")
+```
+
+```{r}
+mice = c(
+    "05_PBS", "12_PBS", "13_PBS",
+    "08_norEVs", "09_norEVs", "02_norEVs",
+    "01_hypEVs", "07_hypEVs", "11_hypEVs"
+)
+```
+
+```{r}
+ensure_dir("./result/flow_rate/")
+```
+
+## Load Data
+
+```{r}
+# Edges of entire networks
+int_edgedt <- list()
+for (m in mice) {
+    int_edgedt[[m]] <- read.csv(sprintf("result/%s/%s_edges.csv", m, m))
+}
+
+# Verticces of entire networks
+int_vertexdt <- list()
+for (m in mice) {
+    int_vertexdt[[m]] <- read.csv(sprintf("result/%s/%s_vertices.csv", m, m))
+}
+```
+
+```{r}
+# Edges of SA networks
+sa_edgedt <- list()
+for (m in mice) {
+    sa_edgedt[[m]] <- read.csv(sprintf("result/%s/%s_edges_sa.csv", m, m))
+}
+# Vertices of SA networks
+sa_vertexdt <- list()
+for (m in mice) {
+    sa_vertexdt[[m]] <- read.csv(sprintf("result/%s/%s_vertices_sa.csv", m, m))
+}
+```
+
+## Manipulate and Export Data
+
+### SA flow rate
+
+```{r}
+write_list2xlsx(sa_edgedt, "result/flow_rate/SAs.xlsx")
+```
+
+### Collateral flow rate
+
+```{r}
+# Collateral data
+collateral_data <- list()
+for (m in mice) {
+    clt_es <- int_edgedt[[m]] |> filter(is_collateral == "True")
+    fr_baseline <- clt_es$baseline.flow_rate
+    clt_es$rel.flow_rate_change.baseline2MCAO0h <- 
+        (clt_es$MCAO0h.flow_rate - fr_baseline) / fr_baseline
+    clt_es$rel.flow_rate_change.baseline2MCAO1h <- 
+        (clt_es$MCAO1h.flow_rate - fr_baseline) / fr_baseline
+    collateral_data[[m]] <- clt_es
+}
+
+write_list2xlsx(collateral_data, "result/flow_rate/Collaterals.xlsx")
+```
+
+### DA root flow rate
+
+```{r}
+edges2da_roots <- list()
+for (m in mice) {
+    printf(">>>>> DA root flow rate: %s <<<<<\n", m)
+    da_roots <- sa_vertexdt[[m]] |>
+        filter(type %in% c("DA root", "DA root added manually")) |>
+        pull(vertex.ID)
+    
+    edges2da_roots[[m]] <- lapply(da_roots, function(v) {
+        subset(sa_edgedt[[m]], source == v | target == v)
+    })
+    names(edges2da_roots[[m]]) <- da_roots
+
+    stopifnot(all(lapply(edges2da_roots[[m]], nrow) == 1))
+
+    edges2da_roots[[m]] <- do.call(
+        rbind,
+        Map(function(d, nm) {
+            cbind(`DA root` = nm, d)
+        }, edges2da_roots[[m]], names(edges2da_roots[[m]]))
+    )
+}
+write_list2xlsx(edges2da_roots, "result/flow_rate/DA_roots.xlsx")
+```
+
+
+
+
+

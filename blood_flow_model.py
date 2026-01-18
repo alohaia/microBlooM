@@ -1,0 +1,189 @@
+#!/usr/bin/env python
+
+"""
+A python script to simulate stationary blood flow in microvascular networks.
+Capabilities:
+1. Import a network from file or generate a hexagonal network
+2. Compute the edge transmissibilities with taking the impact of RBCs into account (Fahraeus, Fahraeus-Linquist effects)
+3. Solve for flow rates, pressures and RBC velocities
+4. Save the results in a file
+"""
+
+import argparse
+import pickle
+from pathlib import Path
+from types import MappingProxyType
+
+import numpy as np
+import source.setup.setup as setup
+from source.flow_network import FlowNetwork
+
+from lmc import nw, utils
+
+parser = argparse.ArgumentParser(
+    prog=f'./{Path(__file__).name}',
+    description='Build a blood flow model.',
+    # epilog='Text at the bottom of help'
+)
+
+parser.add_argument('-m', '--mouse', type=str)
+parser.add_argument('-c', '--condition', type=str,
+                    choices=['baseline', 'MCAO0h', 'MCAO1h'])
+parser.add_argument('-f', '--format', type=str, default="pkl",
+                    choices=["none", "pkl", "vtp", "csv"])
+
+args = parser.parse_args()
+
+# receive arguments
+_mid = args.mouse
+_condition = args.condition
+_save_fmt = args.format
+
+# convert arguments
+# suffixes is determined by suffixes of diameter attributes in original data
+_condition_suffix = {
+    'baseline': '',
+    'MCAO0h': '_mcao0h',
+    'MCAO1h': '_mcao1h',
+}
+_ft_map = {
+    "none": 1, "pkl": 2, "vtp": 3, "csv": 4
+}
+
+# define options based on arguments
+_dir = Path(__file__).parent
+_data_dir = _dir / f'data/CKW_networks/{_mid}/'
+_netwrok_file = _data_dir / 'semi_realistic_vessel_network.pkl'
+_result_dir = _dir / 'result' / _mid
+_result_file = _dir / _result_dir / f'{_mid}_{_condition}_FlowNetwork'
+_result_file_type = _ft_map[_save_fmt]
+_diameter_attr = f'diameter{_condition_suffix[_condition]}'
+
+
+with open(_netwrok_file, 'rb') as f:
+    graph = pickle.load(f)
+    nw.check_microbloom_attrs(graph)
+
+# es = graph.get_edge_dataframe()
+# es.loc[np.isin(es.source, [30, 39]) | np.isin(es.target, [30, 39]), :]
+# breakpoint()
+
+utils.ensure_dirs([str(_result_dir)])
+
+# MappingProxyType is basically a const dict.
+PARAMETERS = MappingProxyType(
+    {
+        # Setup parameters for blood flow model
+        "read_network_option": 3,  # 1: generate hexagonal graph
+                                   # 2: import graph from csv files
+                                   # 3: import graph from igraph format (pickle file)
+        "write_network_option": _result_file_type,
+                                    # 1: do not write anything
+                                    # 2: write to igraph format (.pkl)
+                                    # 3: write to vtp format (.vtp)
+                                    # 4: write to two csv files (.csv)
+        "tube_haematocrit_option": 2,  # 1: No RBCs (ht=0)
+                                       # 2: Constant haematocrit
+        "rbc_impact_option": 3,  # 1: No RBCs (hd=0) - makes only sense if tube_haematocrit_option:1 or ht=0
+                                 # 2: Laws by Pries, Neuhaus, Gaehtgens (1992)
+                                 # 3: Laws by Pries and Secomb (2005)
+        "solver_option": 1,  # 1: Direct solver
+                             # 2: PyAMG solver
+        "iterative_routine": 1,  # 1: Forward problem
+                                 # 2: Iterative routine (ours)
+                                 # 3: Iterative routine (Berg Thesis) [https://oatao.univ-toulouse.fr/25471/1/Berg_Maxime.pdf]
+                                 # 4: Iterative routine (Rasmussen et al. 2018) [https://onlinelibrary.wiley.com/doi/10.1111/micc.12445]
+
+        # Elastic vessel - vascular properties (tube law) - Only required for distensibility and autoregulation models
+        "pressure_external": 0.,  # Constant external pressure
+        "read_vascular_properties_option": 1,  # 1: Do not read anything
+        "tube_law_ref_state_option": 1,  # 1: No compute of reference diameters (d_ref)
+        "csv_path_vascular_properties": "not_needed",  # Young's Modulus and Wall Thickness for all vessels
+
+        # Blood properties
+        "ht_constant": 0.3,  # only required if RBC impact is considered
+        "mu_plasma": 0.0012,
+
+        # Zero Flow Vessel Threshold
+        # True: the vessel with low flow are set to zero
+        # The threshold is set as the max of mass flow balance
+        # The function is reported in set_low_flow_threshold()
+        "ZeroFlowThreshold": False,
+
+        # Hexagonal network properties. Only required for "read_network_option" 1
+        "nr_of_hexagon_x": 3,
+        "nr_of_hexagon_y": 3,
+        "hexa_edge_length": 62.e-6,
+        "hexa_diameter": 4.e-6,
+        "hexa_boundary_vertices": [0, 27],
+        "hexa_boundary_values": [2, 1],
+        "hexa_boundary_types": [1, 1],
+
+        # Import network from csv options. Only required for "read_network_option" 2
+        "csv_path_vertex_data": "data/network/node_data.csv",
+        "csv_path_edge_data": "data/network/edge_data.csv",
+        "csv_path_boundary_data": "data/network/boundary_node_data.csv",
+        "csv_diameter": "D", "csv_length": "L",
+        "csv_edgelist_v1": "n1", "csv_edgelist_v2": "n2",
+        "csv_coord_x": "x", "csv_coord_y": "y", "csv_coord_z": "z",
+        "csv_boundary_vs": "nodeId", "csv_boundary_type": "boundaryType", "csv_boundary_value": "boundaryValue",
+
+        # Import network from igraph option. Only required for "read_network_option" 3
+        "pkl_path_igraph": str(_netwrok_file),
+        "ig_diameter": _diameter_attr,
+        "ig_length": "length",
+        "ig_coord_xyz": "coords",
+        "ig_boundary_type": "boundaryType",  # 1: pressure & 2: flow rate
+        "ig_boundary_value": "boundaryValue",
+
+        # Write options
+        "write_override_initial_graph": False,
+        # Note: the extension of the output file is automatically added later in the function
+        "write_path_igraph": str(_result_file),
+    }
+)
+
+# Create object to set up the simulation and initialise the simulation
+setup_simulation = setup.SetupSimulation()
+# Initialise the implementations based on the parameters specified
+imp_readnetwork, imp_writenetwork, imp_ht, imp_hd, imp_transmiss, imp_velocity, imp_buildsystem, \
+    imp_solver, imp_iterative, imp_balance, imp_read_vascular_properties, imp_tube_law_ref_state = setup_simulation.setup_bloodflow_model(PARAMETERS)
+
+# Build flownetwork object and pass the implementations of the different submodules, which were selected in
+#  the parameter file
+flow_network = FlowNetwork(imp_readnetwork, imp_writenetwork, imp_ht, imp_hd, imp_transmiss, imp_buildsystem,
+                           imp_solver, imp_velocity, imp_iterative, imp_balance, imp_read_vascular_properties,
+                           imp_tube_law_ref_state, PARAMETERS)
+
+
+# Import or generate the network
+print("=> Read network: ...")
+flow_network.read_network()
+print("=> Read network: ...")
+
+# Update the transmissibility
+print("=> Update transmissibility: ...")
+flow_network.update_transmissibility()
+print("=> Update transmissibility: Done")
+
+# print("=> Diagnose system: ...")
+# diagnose_linear_system(flow_network.system_matrix, flow_network.rhs)
+# print("=> Diagnose system: Done")
+
+# Update flow rate, pressure and RBC velocity
+print("=> Update flow, pressure and velocity: ...")
+flow_network.update_blood_flow()
+print("=> Update flow, pressure and velocity: Done")
+
+# Check flow balance
+print("=> Check flow balance: ...")
+flow_network.check_flow_balance()
+print("=> Check flow balance: Done")
+
+# Write the results to file
+flow_network.write_network()
+
+
+
+
+

@@ -64,7 +64,7 @@ class ReadParametersEdges(ReadParameters):
 
             # Assign data to inversemodel object
             # Edge attributes
-            inversemodel.edge_param_eid = df_parameter_space["edge_param_eid"].to_numpy().astype(np.int)
+            inversemodel.edge_param_eid = df_parameter_space["edge_param_eid"].to_numpy().astype(int)
             inversemodel.parameter_pm_range = df_parameter_space["edge_param_pm_range"].to_numpy().astype(np.double)
 
             if np.max(inversemodel.edge_param_eid) > flownetwork.nr_of_es - 1:
@@ -111,14 +111,14 @@ class ReadParametersVertices(ReadParameters):
 
             # Assign data to inversemodel object
             # Edge attributes
-            inversemodel.vertex_param_vid = df_parameter_space["vertex_param_vid"].to_numpy().astype(np.int)
+            inversemodel.vertex_param_vid = df_parameter_space["vertex_param_vid"].to_numpy().astype(int)
             inversemodel.parameter_pm_range = df_parameter_space["vertex_param_pm_range"].to_numpy().astype(np.double)
 
-            is_a_boundary_vertex = np.in1d(inversemodel.vertex_param_vid, flownetwork.boundary_vs)
+            is_a_boundary_vertex = np.isin(inversemodel.vertex_param_vid, flownetwork.boundary_vs)
             if False in is_a_boundary_vertex:
                 sys.exit("Error: Vertex parameter vid refers to vertex, which is not a boundary.")
 
-        is_a_boundary_parameter = np.in1d(flownetwork.boundary_vs, inversemodel.vertex_param_vid)
+        is_a_boundary_parameter = np.isin(flownetwork.boundary_vs, inversemodel.vertex_param_vid)
         boundary_parameter_type = flownetwork.boundary_type[is_a_boundary_parameter]
 
         if True in (boundary_parameter_type > 1):  # Check if there are flow rate boundaries.

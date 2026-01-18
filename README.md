@@ -28,20 +28,14 @@ Please find a more detailed description for each test case in the corresponding 
 
 ## Prerequisites
 
-- Python 3.10
-- Numpy 1.23.4
-- Matplotlib 3.6.2
-- Scipy 1.9.3
-- igraph 0.10.2
-- Pandas 1.5.1
-- Pyamg 4.2.3
+See `environment.yaml`.
 
 ## Installation
 
 1. Clone the repository:
 
 ```
-git clone https://github.com/Franculino/microBlooM.git
+git clone https://github.com/alohaia/microBlooM.git
 ```
 
 2. Move to the correct directoy
@@ -50,10 +44,15 @@ git clone https://github.com/Franculino/microBlooM.git
 cd microBlooM
 ```
 
-3. Run the [`main.py`](https://github.com/Franculino/microBlooM/blob/main/main.py) file
+3. Run the [`main.py`](https://github.com/Franculino/microBlooM/blob/main/main.py) file or 
+   `blood_flow_model.py`
 
 ```
 python3 main.py
+```
+
+```bash
+python blood_flow_model.py --help
 ```
 
 The framework does not have yet an executable file to launch the program and select the desired outcome, refer to [Usage](#usage) for further information.

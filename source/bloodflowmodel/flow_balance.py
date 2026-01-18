@@ -40,7 +40,7 @@ class FlowBalance(ABC):
 
 class FlowBalanceClass(FlowBalance):
     """
-    Abstract base class for checking flow balance at internal nodes and 
+    Abstract base class for checking flow balance at internal nodes and
     whether the system is globally balanced.
     """
 
@@ -48,7 +48,7 @@ class FlowBalanceClass(FlowBalance):
         """
         :param flownetwork: flow network object
         :type flownetwork: source.flow_network.FlowNetwork
-        """      
+        """
 
         nr_of_vs = flownetwork.nr_of_vs
         nr_of_es = flownetwork.nr_of_es
@@ -69,7 +69,7 @@ class FlowBalanceClass(FlowBalance):
         """
         :param flownetwork: flow network object
         :type flownetwork: source.flow_network.FlowNetwork
-        """    
+        """
 
         nr_of_vs = flownetwork.nr_of_vs
         nr_of_es = flownetwork.nr_of_es
@@ -91,7 +91,7 @@ class FlowBalanceClass(FlowBalance):
         :param flownetwork: flow network object
         :type flownetwork: source.flow_network.FlowNetwork
         """
-        
+
         nr_of_vs = flownetwork.nr_of_vs
         flow_rate = flownetwork.flow_rate
         boundary_vs = flownetwork.boundary_vs
@@ -101,13 +101,17 @@ class FlowBalanceClass(FlowBalance):
         ref_flow = np.abs(flow_rate[boundary_vs[0]])
         tol_flow = tol * ref_flow
 
-        is_inside_node = np.logical_not(np.in1d(np.arange(nr_of_vs), boundary_vs))
+        is_inside_node = np.logical_not(np.isin(np.arange(nr_of_vs), boundary_vs))
         positions_of_elements_not_in_boundary = np.where(is_inside_node)[0]
         local_balance = np.abs(flow_balance[is_inside_node])
         is_locally_balanced = local_balance < tol_flow
 
         if False in np.unique(is_locally_balanced):
-            sys.exit("Is locally balanced: " + str(np.unique(is_locally_balanced)) + "(with tol " + str(tol_flow) + ")")
+            sys.exit(
+                f"Is locally balanced: {str(np.unique(is_locally_balanced))}"
+                f"(with tol {str(tol_flow)})\n"
+                f"\tNon-balanced vertices: {np.where(flow_balance >= tol_flow)[0]}"
+            )
 
         balance_boundaries = flow_balance[boundary_vs]
         global_balance = np.abs(np.sum(balance_boundaries))

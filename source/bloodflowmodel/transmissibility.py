@@ -90,5 +90,5 @@ class TransmissibilityVitroPries(Transmissibility):
 
         mu_rel = 1 + (mu_rel_45 - 1) * (np.power((1 - hd), C) - 1) / (np.power((1. - 0.45), C) - 1)  # Eq.(7) in paper
 
-        flownetwork.mu_rel = mu_rel
+        flownetwork.mu_rel = mu_rel # mPa·s
         flownetwork.transmiss = transmiss_poiseuille / mu_rel  # Update transmissibility.
